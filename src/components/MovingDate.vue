@@ -1,10 +1,11 @@
 <script setup lang="ts">
-import { computed, ref } from 'vue'
+import { computed, ref, watch } from 'vue'
 import { useField, useForm } from 'vee-validate'
 import { FloatLabel, DatePicker, RadioButtonGroup, RadioButton, Button } from 'primevue'
 import * as yup from 'yup'
+import { useBookingStore } from '@/stores/booking'
 
-const emit = defineEmits(['prev', 'next'])
+const emit = defineEmits(['prev', 'next','sendData'])
 
 const flexibleOptions = ref([
   { label: 'Ja', value: 'Ja' },
@@ -30,19 +31,31 @@ const { value: flexibleOption, errorMessage: radioError } = useField('flexible')
 const formatDate = ref(selectedDate.value ? new Date(selectedDate.value) : undefined)
 
 function setDate(date: Date) {
-  selectedDate.value = date.toLocaleDateString('sv-SE')
+  selectedDate.value = date?.toLocaleDateString('sv-SE')
 }
 
 const handleSubmit = async () => {
   const { valid } = await validate()
   if (valid) {
     emit('next', {
-      movingDate: selectedDate.value,
-      flexible: flexibleOption.value,
+      moving: {
+        movingDate: selectedDate.value,
+        flexible: flexibleOption.value,
+      },
     })
   }
 }
 
+watch(selectedDate, (newValue) => {
+  useBookingStore().updateBooking({
+    movingDate: newValue,
+  })
+})
+watch(flexibleOption, (newValue) => {
+  useBookingStore().updateBooking({
+    flexibleDate: newValue as string,
+  })
+})
 
 </script>
 <template lang="">
@@ -53,10 +66,10 @@ const handleSubmit = async () => {
       nedan.
     </h3>
 
-    <div class="flex flex-col gap-4 mt-4">
+    <div class="grid gap-4 mt-4">
       <div className="grid gap-2">
         <label className="font-semibold" htmlFor="in_label"> Välj datum </label>
-        <FloatLabel variant="in">
+        <FloatLabel variant="in" class="rounded-md">
           <DatePicker
             v-model="formatDate"
             size="small"

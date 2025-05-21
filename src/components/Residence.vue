@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, onMounted, ref } from 'vue'
+import { computed, onMounted, ref, watch } from 'vue'
 import { useField, useForm } from 'vee-validate'
 import {
   Button,
@@ -12,6 +12,9 @@ import {
   Select,
 } from 'primevue'
 import * as yup from 'yup'
+import { useBookingStore } from '@/stores/booking'
+
+const bookingStore = useBookingStore()
 
 const { residence } = defineProps({
   residence: {
@@ -52,13 +55,16 @@ const validationSchema = yup.object({
     .required('Ange bostads storlek')
     .positive('Ange en positiv siffra')
     .integer('Ange ett heltal'),
-  floor: yup
-    .number()
-    .typeError('Ange våning')
-    .positive('Ange en positiv siffra')
-    .integer('Ange ett heltal')
-    .nullable()
-    .optional(),
+  floor: yup.number().when('type', {
+    is: 'Lägenhet',
+    then: (schema: any) =>
+      schema
+        .typeError('Ange våning')
+        .required('Ange våning')
+        .positive('Ange en positiv siffra')
+        .integer('Ange ett heltal'),
+    otherwise: (schema: any) => schema.notRequired(),
+  }),
   access: yup.string().required('Ange tillgång'),
 })
 
@@ -74,7 +80,7 @@ const handleSubmit = async () => {
   const { valid } = await validate()
   if (valid) {
     emit('next', {
-      [residence]: {
+      ['residence'+residence]: {
         address: address.value,
         type: type.value,
         area: area.value,
@@ -97,9 +103,21 @@ onMounted(() => {
 
   autocomplete.addListener('place_changed', () => {
     const place = autocomplete.getPlace()
+
+    
+
     address.value = place.formatted_address || input.value
   })
 })
+
+watch(area, (newValue) => {
+  if (residence === 'Current') {
+    bookingStore.updateBooking({
+      area: Number(newValue),
+    })
+  } 
+})
+
 </script>
 
 <template lang="">
@@ -109,7 +127,7 @@ onMounted(() => {
     <div class="flex flex-col gap-4 mt-4">
       <div class="grid gap-2">
         <FloatLabel variant="in">
-          <InputText id="in_label" v-model="address" size="small" fluid ref="inputText" />
+          <InputText class="!text-base" id="in_label" autocomplete="none" v-model="address" size="small" fluid ref="inputText" />
           <label for="Adress">{{ context.adress }}</label>
         </FloatLabel>
         <span className="text-sm font-semibold text-red-500" v-if="adressError">

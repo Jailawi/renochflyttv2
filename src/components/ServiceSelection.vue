@@ -29,9 +29,6 @@ const { validate, values } = useForm({ validationSchema })
 const { value: selectedServices, errorMessage } = useField('services')
 
 const handleSubmit = async () => {
-  console.log('Form submitted')
-  console.log('Selected services:', selectedServices.value)
-  // Perform any additional actions here, like sending data to an API
   const { valid } = await validate()
   if (valid) {
     emit('next', {
@@ -41,8 +38,8 @@ const handleSubmit = async () => {
 }
 </script>
 <template lang="">
-  <form className="grid justify-start space-y-3" @submit.prevent="handleSubmit">
-    <div className="grid gap-2">
+  <form className="grid justify-start gap-7" @submit.prevent="handleSubmit">
+    <div className="flex flex-col gap-2 overflow-hidden">
       <label className="font-medium" htmlFor=""> Vad behöver du hjälp med? </label>
       <div class="grid grid-cols-2 gap-4">
         <Service
@@ -55,10 +52,11 @@ const handleSubmit = async () => {
       <span className="text-sm font-semibold text-red-500">
         {{ errorMessage }}
       </span>
-      <div class="w-1/2 flex justify-stretch">
-        <Button type="submit" label="Nästa">Next</Button>
-      </div>
     </div>
+    <div class="w-1/2 flex justify-stretch">
+      <Button type="submit" label="Nästa">Next</Button>
+    </div>
+
     <!-- {{ selectedServices }} -->
   </form>
 </template>

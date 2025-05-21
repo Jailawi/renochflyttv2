@@ -5,6 +5,7 @@ import {
   FloatLabel,
   RadioButtonGroup,
   RadioButton,
+  Checkbox,
   Button,
   InputText,
   InputMask,
@@ -38,13 +39,14 @@ const validationSchema = computed(() =>
     name: yup.string().required('Ange '),
     ssn: yup.string().required('Ange '),
     rutavdrag: yup.string().when('customerType', {
-    is: 'Privatperson',
-    then: (schema) => schema.required('Ange om du är berättigad till rutavdrag'),
-    otherwise: (schema) => schema.notRequired(),
-  }),
+      is: 'Privatperson',
+      then: (schema) => schema.required('Ange om du är berättigad till rutavdrag'),
+      otherwise: (schema) => schema.notRequired(),
+    }),
     email: yup.string().email('Ange en giltig e-postadress').required('Ange e-postadress'),
     phone: yup.string().min(8, 'Ange giltigt nummer').required('Ange telefonnummer'),
     message: yup.string().optional(),
+    consent: yup.boolean().isTrue('Du måste godkänna integritetspolicyn').required('Du måste godkänna integritetspolicyn'),
   }),
 )
 
@@ -57,6 +59,7 @@ const { value: rutavdrag, errorMessage: rutavdragError } = useField('rutavdrag')
 const { value: email, errorMessage: emailError } = useField('email')
 const { value: phone, errorMessage: phoneError } = useField('phone')
 const { value: message, errorMessage: messageError } = useField('message')
+const { value: consent, errorMessage: consentError } = useField('consent')
 
 const context = computed(() => ({
   name: customerType.value === 'Företag' ? 'Företagsnamn' : 'Fullständigt namn',
@@ -64,20 +67,21 @@ const context = computed(() => ({
 }))
 
 const handleSubmit = async () => {
-  if(customerType.value === 'Företag') {
+  if (customerType.value === 'Företag') {
     delete values.rutavdrag
-  } 
+  }
   const { valid } = await validate()
-  console.log('Form submitted', values)
   if (valid) {
     emit('submit', {
-      customerType: customerType.value,
-      name: name.value,
-      ssn: ssn.value,
-      rutavdrag: rutavdrag.value,
-      email: email.value,
-      phone: phone.value,
-      message: message.value,
+      customerInfo: {
+        customerType: customerType.value,
+        name: name.value,
+        ssn: ssn.value,
+        rutavdrag: rutavdrag.value,
+        email: email.value,
+        phone: phone.value,
+        message: message.value,
+      },
     })
   }
 }
@@ -111,7 +115,7 @@ const handleSubmit = async () => {
             <label for="name">{{ context.name }}</label>
           </FloatLabel>
           <span className="text-sm font-semibold text-red-500" v-if="nameError">
-            {{ nameError }} {{context.name.toLowerCase()}}
+            {{ nameError }} {{ context.name.toLowerCase() }}
           </span>
         </div>
         <div class="grid gap-2 w-full">
@@ -120,7 +124,7 @@ const handleSubmit = async () => {
             <label for="ssn">{{ context.ssn }}</label>
           </FloatLabel>
           <span className="text-sm font-semibold text-red-500" v-if="ssnError">
-            {{ ssnError }} {{context.ssn.toLowerCase()}}
+            {{ ssnError }} {{ context.ssn.toLowerCase() }}
           </span>
         </div>
       </div>
@@ -168,6 +172,22 @@ const handleSubmit = async () => {
         </FloatLabel>
         <span className="text-sm font-semibold text-red-500" v-if="messageError">
           {{ messageError }}
+        </span>
+      </div>
+      <div>
+        <div class="flex items-center gap-2">
+          <Checkbox v-model="consent" inputId="consent" binary name="consent" />
+          <label class="text-gray-600 font-semibold" for="consent">
+            Jag godkänner<a
+              href="https://www.renochflytt.se/integritetspolicy/"
+              target="_blank"
+              class="text-orange-500 hover:text-orange-700"
+              >integritetspolicyn</a
+            >
+          </label>
+        </div>
+        <span className="text-sm font-semibold text-red-500" v-if="consentError">
+          {{ consentError }}
         </span>
       </div>
       <div class="flex gap-2">

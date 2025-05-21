@@ -5,11 +5,13 @@ import App from './App.vue'
 import PrimeVue from 'primevue/config'
 import Aura from '@primeuix/themes/aura'
 import { definePreset } from '@primeuix/themes'
-import { month } from '@primeuix/themes/aura/datepicker'
+import 'primeicons/primeicons.css'
 import { router } from './router'
+import { createPinia } from 'pinia'
 
 const app = createApp(App)
 app.use(router)
+app.use(createPinia())
 
 const MyPreset = definePreset(Aura, {
   semantic: {
