@@ -14,6 +14,12 @@ import {
 import * as yup from 'yup'
 import { useBookingStore } from '@/stores/booking'
 
+declare global {
+  interface Window {
+    initMap: () => void
+  }
+}
+
 const bookingStore = useBookingStore()
 
 const { residence } = defineProps({
@@ -49,12 +55,14 @@ const selectOption = (value: any) => {
 const validationSchema = yup.object({
   address: yup.string().required(context.adressValidation),
   type: yup.string().required('Ange typ av bostad'),
-  area: yup
-    .number()
-    .typeError('Ange bostads storlek')
-    .required('Ange bostads storlek')
-    .positive('Ange en positiv siffra')
-    .integer('Ange ett heltal'),
+  area: residence === 'Current'
+    ? yup
+        .number()
+        .typeError('Ange bostads storlek')
+        .required('Ange bostads storlek')
+        .positive('Ange en positiv siffra')
+        .integer('Ange ett heltal')
+    : yup.number().notRequired(),
   floor: yup.number().when('type', {
     is: 'Lägenhet',
     then: (schema: any) =>
@@ -80,13 +88,13 @@ const handleSubmit = async () => {
   const { valid } = await validate()
   if (valid) {
     emit('next', {
-      ['residence'+residence]: {
+      ['residence' + residence]: {
         address: address.value,
         type: type.value,
         area: area.value,
         floor: floor.value,
         access: access.value,
-      }
+      },
     })
   }
 }
@@ -94,20 +102,20 @@ const handleSubmit = async () => {
 const inputText = ref()
 
 onMounted(() => {
-  const input = inputText.value.$el
-  input.placeholder = ''
-  const autocomplete = new google.maps.places.Autocomplete(input, {
-    types: ['address'],
-    fields: ['address_components'],
-  })
-
-  autocomplete.addListener('place_changed', () => {
-    const place = autocomplete.getPlace()
-
-    
-
-    address.value = place.formatted_address || input.value
-  })
+  window.initMap = () => {
+    const input = inputText.value.$el
+    input.placeholder = ''
+    const autocomplete = new google.maps.places.Autocomplete(input, {
+      types: ['address'],
+      fields: ['address_components', 'formatted_address'],
+    })
+  
+    autocomplete.addListener('place_changed', () => {
+      const place = autocomplete.getPlace()
+  
+      address.value = place.formatted_address || input.value
+    })
+  }
 })
 
 watch(area, (newValue) => {
@@ -115,19 +123,26 @@ watch(area, (newValue) => {
     bookingStore.updateBooking({
       area: Number(newValue),
     })
-  } 
+  }
 })
-
 </script>
 
 <template lang="">
   <form @submit.prevent="handleSubmit">
-    <h1 className="text-2xl">{{context.title}}</h1>
+    <h1 className="text-2xl">{{ context.title }}</h1>
     <h3 className="">Berätta lite om er {{ context.description }}.</h3>
     <div class="flex flex-col gap-4 mt-4">
       <div class="grid gap-2">
         <FloatLabel variant="in">
-          <InputText class="!text-base" id="in_label" autocomplete="none" v-model="address" size="small" fluid ref="inputText" />
+          <InputText
+            class="!text-base"
+            id="in_label"
+            autocomplete="none"
+            v-model="address"
+            size="small"
+            fluid
+            ref="inputText"
+          />
           <label for="Adress">{{ context.adress }}</label>
         </FloatLabel>
         <span className="text-sm font-semibold text-red-500" v-if="adressError">
@@ -150,10 +165,16 @@ watch(area, (newValue) => {
           {{ typeError }}
         </span>
       </div>
-      <div class="grid gap-2">
+      <div v-if="residence === 'Current'" class="grid gap-2">
         <FloatLabel variant="in" class="">
-          <!-- <InputNumber v-model="area" inputId="area" mode="currency" currency="USD" locale="en-US" variant="filled" /> -->
-          <InputText v-model="area" inputId="area" type="number" step="1" fluid @keydown="(event) => blockedNumberChars.includes(event.key) && event.preventDefault()" />
+          <InputText
+            v-model="area"
+            inputId="area"
+            type="number"
+            step="1"
+            fluid
+            @keydown="(event) => blockedNumberChars.includes(event.key) && event.preventDefault()"
+          />
           <label for="area">Bostads storlek (kvm)</label>
         </FloatLabel>
         <span className="text-sm font-semibold text-red-500" v-if="areaError">

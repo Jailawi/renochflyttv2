@@ -8,7 +8,7 @@ import Residence from './Residence.vue'
 import CustomerInfo from './CustomerInfo.vue'
 import { useRouter } from 'vue-router/auto'
 
-const emit = defineEmits(['progress', 'overview'])
+const emit = defineEmits(['overview'])
 
 const step = ref(1)
 
@@ -38,7 +38,6 @@ const next = async (payload: any) => {
   }
   const key = Object.keys(payload)[0] as DataKeys
   data.value[key] = payload[key]
-  emit('progress', step.value)
 }
 
 const submit = async (payload: any) => {
@@ -52,7 +51,6 @@ const prev = () => {
   if (step.value > 1) {
     step.value--
   }
-  emit('progress', step.value)
 }
 
 const sendData = (payload: any) => {
@@ -76,11 +74,6 @@ const sendData = (payload: any) => {
     <Residence v-show="step === 3" @prev="prev" @next="next" residence="Current" />
     <Residence v-show="step === 4" @prev="prev" @next="next" residence="New" />
     <CustomerInfo v-show="step === 5" @prev="prev" @next="next" @submit="submit" />
-    <div className="flex gap-2">
-      <!-- <Button v-if="step > 0" @click="prev()" label="Gå Tillbaka" severity="secondary" />
-      <Button v-if="step < 2" @click="next()" label="Nästa" /> -->
-      <!-- <Button v-if="step === 4" label="Skicka förfrågan" type="submit" /> -->
-    </div>
     <!-- <p className="text-wrap">{{ values }}</p> -->
   </div>
 </template>

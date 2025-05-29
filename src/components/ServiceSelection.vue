@@ -1,9 +1,7 @@
 <script setup lang="ts">
 import { Button } from 'primevue'
-import { required } from '@vee-validate/rules'
 import { useField, useForm } from 'vee-validate'
 import * as yup from 'yup' // Optional but recommended for schema validation
-import { computed, ref } from 'vue'
 import Service from './Service.vue'
 import truckIcon from './icons/truck.svg'
 import installIcon from './icons/install.svg'
@@ -23,9 +21,7 @@ const validationSchema = yup.object({
   services: yup.array().min(1, 'Välj minst en tjänst').required('Välj minst en tjänst'),
 })
 
-// const {value: selectedServices, errorMessage} = useField('services')
-
-const { validate, values } = useForm({ validationSchema })
+const { validate, values, meta } = useForm({ validationSchema })
 const { value: selectedServices, errorMessage } = useField('services')
 
 const handleSubmit = async () => {
@@ -38,7 +34,7 @@ const handleSubmit = async () => {
 }
 </script>
 <template lang="">
-  <form className="grid justify-start gap-7" @submit.prevent="handleSubmit">
+  <form className="flex flex-col sm:grid justify-start gap-4" @submit.prevent="handleSubmit">
     <div className="flex flex-col gap-2 overflow-hidden">
       <label className="font-medium" htmlFor=""> Vad behöver du hjälp med? </label>
       <div class="grid grid-cols-2 gap-4">
@@ -49,12 +45,18 @@ const handleSubmit = async () => {
           v-model="selectedServices"
         />
       </div>
-      <span className="text-sm font-semibold text-red-500">
+      <span v-if="errorMessage" className="text-sm font-semibold text-red-500">
         {{ errorMessage }}
       </span>
     </div>
-    <div class="w-1/2 flex justify-stretch">
-      <Button type="submit" label="Nästa">Next</Button>
+    <div class="w-1/2">
+      <Button
+        :class="[!meta.valid ? '!cursor-not-allowed' : '']"
+        type="submit"
+        label="Nästa"
+        :disabled="!meta.valid"
+        >Nästa</Button
+      >
     </div>
 
     <!-- {{ selectedServices }} -->
