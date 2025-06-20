@@ -1,6 +1,12 @@
 <script setup lang="ts">
 import { computed, onMounted, ref, watch } from 'vue'
 import { useField, useForm } from 'vee-validate'
+
+declare global {
+  interface Window {
+    vueInitMapCallback: () => void
+  }
+}
 import {
   Button,
   AutoComplete,
@@ -13,12 +19,6 @@ import {
 } from 'primevue'
 import * as yup from 'yup'
 import { useBookingStore } from '@/stores/booking'
-
-declare global {
-  interface Window {
-    initMap: () => void
-  }
-}
 
 const bookingStore = useBookingStore()
 
@@ -55,14 +55,15 @@ const selectOption = (value: any) => {
 const validationSchema = yup.object({
   address: yup.string().required(context.adressValidation),
   type: yup.string().required('Ange typ av bostad'),
-  area: residence === 'Current'
-    ? yup
-        .number()
-        .typeError('Ange bostads storlek')
-        .required('Ange bostads storlek')
-        .positive('Ange en positiv siffra')
-        .integer('Ange ett heltal')
-    : yup.number().notRequired(),
+  area:
+    residence === 'Current'
+      ? yup
+          .number()
+          .typeError('Ange bostads storlek')
+          .required('Ange bostads storlek')
+          .positive('Ange en positiv siffra')
+          .integer('Ange ett heltal')
+      : yup.number().notRequired(),
   floor: yup.number().when('type', {
     is: 'Lägenhet',
     then: (schema: any) =>
@@ -102,17 +103,19 @@ const handleSubmit = async () => {
 const inputText = ref()
 
 onMounted(() => {
-  window.initMap = () => {
+  window.vueInitMapCallback = () => {
+    // This function is called when the Google Maps API is loaded
+    google.maps.event.trigger(inputText.value.$el, 'focus')
     const input = inputText.value.$el
     input.placeholder = ''
     const autocomplete = new google.maps.places.Autocomplete(input, {
       types: ['address'],
       fields: ['address_components', 'formatted_address'],
     })
-  
+
     autocomplete.addListener('place_changed', () => {
       const place = autocomplete.getPlace()
-  
+
       address.value = place.formatted_address || input.value
     })
   }
@@ -183,18 +186,25 @@ watch(area, (newValue) => {
       </div>
       <div class="grid gap-2">
         <div className="flex gap-2">
-          <FloatLabel variant="in" class="w-1/2">
-            <Select v-model="access" inputId="access" :options="accessOptions" fluid />
-            <label for="access">Tillgång</label>
-          </FloatLabel>
-          <FloatLabel v-if="type === 'Lägenhet'" class="w-1/2" variant="in">
-            <InputNumber v-model="floor" inputId="floor" :useGrouping="false" fluid />
-            <label for="floor">Våningsplan</label>
-          </FloatLabel>
+          <div class="w-1/2">
+            <FloatLabel variant="in">
+              <Select v-model="access" inputId="access" :options="accessOptions" fluid />
+              <label for="access">Tillgång</label>
+            </FloatLabel>
+            <span className="text-sm font-semibold text-red-500" v-if="accessError">
+              {{ accessError }}
+            </span>
+          </div>
+          <div class="w-1/2">
+            <FloatLabel v-if="type === 'Lägenhet'" variant="in">
+              <InputNumber v-model="floor" inputId="floor" :useGrouping="false" fluid />
+              <label for="floor">Våningsplan</label>
+            </FloatLabel>
+            <span className="text-sm font-semibold text-red-500" v-if="floorError">
+              {{ floorError }}
+            </span>
+          </div>
         </div>
-        <span className="text-sm font-semibold text-red-500" v-if="accessError">
-          {{ accessError }}
-        </span>
       </div>
       <!-- {{ values }} -->
 
