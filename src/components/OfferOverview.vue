@@ -28,11 +28,15 @@ const overviewFields = [
   },
   {
     label: 'Antal kvm',
-    id: 'area'
+    id: 'currentAddress.area'
   },
 ]
 const store = useBookingStore()
 const {booking} = storeToRefs(store)
+
+const getNestedValue = (obj: any, path: string): any  =>{
+  return path.split('.').reduce((acc, part) => acc?.[part], obj);
+}
 
 
 </script>
@@ -45,7 +49,7 @@ const {booking} = storeToRefs(store)
       <div class="flex flex-col gap-3">
         <div v-for="field in overviewFields" :key="field.id" class="flex justify-between w-full">
           <p class="text-gray-600">{{ field.label }}</p>
-          <p class="font-semibold"> {{ booking?.[field.id as keyof typeof booking] ?? '-' }}</p>
+          <p class="font-semibold"> {{ getNestedValue(booking, field.id) ?? '-' }}</p>
         </div>
         <Divider />
         <div class="flex justify-between w-full">

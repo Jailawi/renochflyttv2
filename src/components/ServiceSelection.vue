@@ -7,6 +7,7 @@ import truckIcon from './icons/truck.svg'
 import installIcon from './icons/install.svg'
 import cleaningIcon from './icons/cleaning.png'
 import packageIcon from './icons/package.png'
+import { useBookingStore } from '@/stores/booking'
 
 const services = [
   { id: 'moving', name: 'Flytthjälp', icon: truckIcon },
@@ -22,11 +23,14 @@ const validationSchema = yup.object({
 })
 
 const { validate, values, meta } = useForm({ validationSchema })
-const { value: selectedServices, errorMessage } = useField('services')
+const { value: selectedServices, errorMessage } = useField<string[]>('services')
 
 const handleSubmit = async () => {
   const { valid } = await validate()
   if (valid) {
+    useBookingStore().updateBooking({
+      services: selectedServices.value,
+    })
     emit('next', {
       services: selectedServices.value,
     })

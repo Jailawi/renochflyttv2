@@ -2,7 +2,7 @@
 import { ref } from 'vue'
 
 const { icon, label, modelValue } = defineProps({
-  icon: Object,
+  icon: String,
   label: {
     type: String,
     required: true,

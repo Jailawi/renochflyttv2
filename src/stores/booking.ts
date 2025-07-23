@@ -1,37 +1,42 @@
 import { defineStore } from 'pinia'
 
-export interface BookingOverview {
-  movingDate?: string;
-  flexibleDate?: string; 
-  area?: number;
-}
-
 export interface Booking {
-  movingDate: string;
-  flexibleDate: string;
-  area: number;
-  services: string[];
-  customerInfo: {
-        name: string;
-        ssn: string;
-        rutavdrag: string;
-        email: string;
-        phone: string;
-        message: string;
+  services?: string[]
+  moving_date?: string
+  cleaning_date?: string
+  flexible_date?: boolean
+  current_address?: {
+    address?: string
+    residence_type?: string
+    living_area?: number
+    floor?: number
+    accessibility?: string
   }
-
+  new_address?: {
+    address?: string
+    residence_type?: string
+    living_area?: number
+    floor?: number
+    accessibility?: string
+  }
+  contact?: {
+    name?: string
+    ssn?: string
+    rutavdrag?: boolean
+    email?: string
+    phone?: string
+    message?: string
+    consent?: boolean
+  }
 }
 
 export const useBookingStore = defineStore('booking', {
   state: () => ({
-    booking: {
-      movingDate: undefined,
-      flexibleDate: undefined,
-      area: undefined,
-    } as BookingOverview
-  }),
+    booking: {} as Booking
+  }
+),
   actions: {
-    updateBooking(data: Partial<BookingOverview>) {
+    updateBooking(data: Partial<Booking>) {
       this.booking = { ...this.booking, ...data }
     },
     clearBooking() {

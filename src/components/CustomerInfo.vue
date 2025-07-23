@@ -12,6 +12,7 @@ import {
   Textarea,
 } from 'primevue'
 import * as yup from 'yup'
+import { useBookingStore } from '@/stores/booking'
 
 const emit = defineEmits(['prev', 'next', 'submit'])
 
@@ -39,17 +40,28 @@ const validationSchema = computed(() =>
 
 const { validate, values } = useForm({ validationSchema })
 
-const { value: name, errorMessage: nameError } = useField('name')
-const { value: ssn, errorMessage: ssnError } = useField('ssn')
-const { value: rutavdrag, errorMessage: rutavdragError } = useField('rutavdrag')
-const { value: email, errorMessage: emailError } = useField('email')
-const { value: phone, errorMessage: phoneError } = useField('phone')
-const { value: message, errorMessage: messageError } = useField('message')
-const { value: consent, errorMessage: consentError } = useField('consent')
+const { value: name, errorMessage: nameError } = useField<string>('name')
+const { value: ssn, errorMessage: ssnError } = useField<string>('ssn')
+const { value: rutavdrag, errorMessage: rutavdragError } = useField<boolean>('rutavdrag')
+const { value: email, errorMessage: emailError } = useField<string>('email')
+const { value: phone, errorMessage: phoneError } = useField<string>('phone')
+const { value: message, errorMessage: messageError } = useField<string>('message')
+const { value: consent, errorMessage: consentError } = useField<boolean>('consent')
 
 const handleSubmit = async () => {
   const { valid } = await validate()
   if (valid) {
+    useBookingStore().updateBooking({
+      contact: {
+        name: name.value,
+        ssn: ssn.value,
+        rutavdrag: rutavdrag.value,
+        email: email.value,
+        phone: phone.value,
+        message: message.value,
+        consent: consent.value,
+      },
+    })
     emit('submit', {
       customerInfo: {
         name: name.value,

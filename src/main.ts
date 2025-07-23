@@ -9,9 +9,25 @@ import 'primeicons/primeicons.css'
 import { router } from './router'
 import { createPinia } from 'pinia'
 
+import axios from 'axios'
+
 const app = createApp(App)
 app.use(router)
 app.use(createPinia())
+
+// In development, use empty baseURL so Vite proxy can handle requests
+// In production, use the full API URL
+const baseURL = import.meta.env.DEV ? '' : (import.meta.env.VITE_API_BASE_URL || 'http://localhost:8080')
+
+axios.defaults.baseURL = baseURL
+axios.defaults.headers.common['Content-Type'] = 'application/json'
+
+export const apiClient = axios.create({
+  baseURL: baseURL,
+  headers: {
+    'Content-Type': 'application/json',
+  },
+})
 
 const MyPreset = definePreset(Aura, {
   semantic: {
@@ -55,7 +71,7 @@ app.use(PrimeVue, {
       'December',
     ],
     monthNamesShort: [
-      'Jan', 
+      'Jan',
       'Feb',
       'Mars',
       'Apr',
@@ -72,7 +88,5 @@ app.use(PrimeVue, {
     today: 'Idag',
   },
 })
-
-
 
 app.mount('#app')

@@ -36,10 +36,10 @@ const residenceTypes = ref([
 ])
 
 const context = {
-  title: residence === 'Current' ? 'Vi Flyttar från..' : 'Vi Flyttar till..',
-  adress: residence === 'Current' ? 'Nuvarande adress' : 'Ny adress',
-  description: residence === 'Current' ? 'nuvarande adress' : 'nya adress',
-  adressValidation: residence === 'Current' ? 'Ange nuvarande adress' : 'Ange flyttadress',
+  title: residence === 'current' ? 'Vi Flyttar från..' : 'Vi Flyttar till..',
+  adress: residence === 'current' ? 'Nuvarande adress' : 'Ny adress',
+  description: residence === 'current' ? 'nuvarande adress' : 'nya adress',
+  adressValidation: residence === 'current' ? 'Ange nuvarande adress' : 'Ange flyttadress',
 }
 
 const accessOptions = ref(['Liten Hiss', 'Medelstor Hiss', 'Stor Hiss', 'Trappor', 'Entreplan'])
@@ -56,7 +56,7 @@ const validationSchema = yup.object({
   address: yup.string().required(context.adressValidation),
   type: yup.string().required('Ange typ av bostad'),
   area:
-    residence === 'Current'
+    residence === 'current'
       ? yup
           .number()
           .typeError('Ange bostads storlek')
@@ -81,13 +81,21 @@ const { validate, values } = useForm({ validationSchema })
 
 const { value: address, errorMessage: adressError } = useField<string>('address')
 const { value: type, errorMessage: typeError } = useField<string>('type')
-const { value: area, errorMessage: areaError } = useField<string>('area')
-const { value: floor, errorMessage: floorError } = useField<string>('floor')
+const { value: area, errorMessage: areaError } = useField<number>('area')
+const { value: floor, errorMessage: floorError } = useField<number>('floor')
 const { value: access, errorMessage: accessError } = useField<string>('access')
 
 const handleSubmit = async () => {
   const { valid } = await validate()
   if (valid) {
+    bookingStore.updateBooking({
+      [residence + 'Address']: {
+        address: address.value,
+        type: type.value,
+        area: area.value,
+        floor: floor.value,
+        access: access.value,}
+    })
     emit('next', {
       ['residence' + residence]: {
         address: address.value,
@@ -102,29 +110,38 @@ const handleSubmit = async () => {
 
 const inputText = ref()
 
+const swedenBounds = new google.maps.LatLngBounds(
+  new google.maps.LatLng(55.0, 11.0), // Southwest corner
+  new google.maps.LatLng(69.0, 24.2), // Northeast corner
+)
+const initMap = () => {
+  google.maps.event.trigger(inputText.value.$el, 'focus')
+  const input = inputText.value.$el
+  input.placeholder = ''
+  const autocomplete = new google.maps.places.Autocomplete(input, {
+    types: ['address'],
+    fields: ['address_components', 'formatted_address'],
+    bounds: swedenBounds,
+    strictBounds: false,
+  })
+
+  autocomplete.addListener('place_changed', () => {
+    const place = autocomplete.getPlace()
+
+    address.value = place.formatted_address || input.value
+  })
+}
+
 onMounted(() => {
-  window.vueInitMapCallback = () => {
-    // This function is called when the Google Maps API is loaded
-    google.maps.event.trigger(inputText.value.$el, 'focus')
-    const input = inputText.value.$el
-    input.placeholder = ''
-    const autocomplete = new google.maps.places.Autocomplete(input, {
-      types: ['address'],
-      fields: ['address_components', 'formatted_address'],
-    })
-
-    autocomplete.addListener('place_changed', () => {
-      const place = autocomplete.getPlace()
-
-      address.value = place.formatted_address || input.value
-    })
-  }
+  initMap()
 })
 
-watch(area, (newValue) => {
-  if (residence === 'Current') {
+watch(area, (newArea) => {
+  if (residence === 'current') {
     bookingStore.updateBooking({
-      area: Number(newValue),
+      currentAddress: {
+        area: newArea,
+      }
     })
   }
 })
@@ -168,7 +185,7 @@ watch(area, (newValue) => {
           {{ typeError }}
         </span>
       </div>
-      <div v-if="residence === 'Current'" class="grid gap-2">
+      <div v-if="residence === 'current'" class="grid gap-2">
         <FloatLabel variant="in" class="">
           <InputText
             v-model="area"

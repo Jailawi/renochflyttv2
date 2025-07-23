@@ -7,45 +7,12 @@ import MovingDate from './MovingDate.vue'
 import Residence from './Residence.vue'
 import CustomerInfo from './CustomerInfo.vue'
 import { useRouter } from 'vue-router/auto'
-
-const emit = defineEmits(['overview'])
+import { useBookingStore } from '@/stores/booking'
+import { apiClient } from '@/main'
 
 const step = ref(1)
 
-type DataKeys = 'services' | 'moving' | 'residenceCurrent' | 'residenceNew' | 'customerInfo'
-
-interface DataType {
-  services: any[]
-  moving: Record<string, any>
-  residenceCurrent: Record<string, any>
-  residenceNew: Record<string, any>
-  customerInfo: Record<string, any>
-}
-
-const data = ref<DataType>({
-  services: [],
-  moving: {},
-  residenceCurrent: {},
-  residenceNew: {},
-  customerInfo: {},
-})
-
 const router = useRouter()
-
-const next = async (payload: any) => {
-  if (step.value < 5) {
-    step.value++
-  }
-  const key = Object.keys(payload)[0] as DataKeys
-  data.value[key] = payload[key]
-}
-
-const submit = async (payload: any) => {
-  const key = Object.keys(payload)[0] as DataKeys
-  data.value[key] = payload[key]
-  console.log('Form submitted', data.value)
-  router.push('/confirmation')
-}
 
 const prev = () => {
   if (step.value > 1) {
@@ -53,9 +20,28 @@ const prev = () => {
   }
 }
 
-const sendData = (payload: any) => {
-  emit('overview', payload)
+const next = () => {
+  console.log("Current booking: ", useBookingStore().booking)
+  if (step.value < 5) {
+    step.value++
+  }
 }
+
+const submit = () => {
+  const plainBooking = (useBookingStore().booking);
+  console.log("Submitting booking data: ", plainBooking)
+  apiClient.post('/booking', plainBooking)
+    .then((response: any) => {
+      console.log('Booking submitted successfully:', response.data)
+    })
+    .catch((error: any) => {
+      console.error('Error submitting booking:', error)
+    })
+  console.log('Form submitted')
+  // router.push('/confirmation')
+}
+
+
 </script>
 
 <template lang="">
@@ -70,9 +56,9 @@ const sendData = (payload: any) => {
       </StepList>
     </Stepper>
     <ServiceSelection v-show="step === 1" @next="next" />
-    <MovingDate v-show="step === 2" @prev="prev" @next="next" @sendData="sendData" />
-    <Residence v-show="step === 3" @prev="prev" @next="next" residence="Current" />
-    <Residence v-show="step === 4" @prev="prev" @next="next" residence="New" />
+    <MovingDate v-show="step === 2" @prev="prev" @next="next" />
+    <Residence v-show="step === 3" @prev="prev" @next="next" residence="current" />
+    <Residence v-show="step === 4" @prev="prev" @next="next" residence="new" />
     <CustomerInfo v-show="step === 5" @prev="prev" @next="next" @submit="submit" />
     <!-- <p className="text-wrap">{{ values }}</p> -->
   </div>

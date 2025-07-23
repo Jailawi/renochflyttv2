@@ -5,7 +5,11 @@ import { FloatLabel, DatePicker, RadioButtonGroup, RadioButton, Button } from 'p
 import * as yup from 'yup'
 import { useBookingStore } from '@/stores/booking'
 
-const emit = defineEmits(['prev', 'next','sendData'])
+const emit = defineEmits(['prev', 'next'])
+
+const bookingStore = useBookingStore()
+
+const services = computed(() => bookingStore.booking.services || [])
 
 const flexibleOptions = ref([
   { label: 'Ja', value: 'Ja' },
@@ -13,50 +17,62 @@ const flexibleOptions = ref([
 ])
 
 const selectOption = (value: any) => {
-  flexibleOption.value = value
+  flexibleDate.value = value
 }
 
 const validationSchema = yup.object({
   movingDate: yup.string().required('Flyttdatum är obligatoriskt'),
-  flexible: yup.string().required('Ange om flyttdatum är flexibelt'),
+  cleaningDate: services.value.includes('Flyttstädning')
+    ? yup.string().required('Flyttstädning kräver ett datum')
+    : yup.string().notRequired(),
+  flexibleDate: yup.boolean().required('Ange om flyttdatum är flexibelt'),
 })
 
 const { validate, values } = useForm({
   validationSchema,
 })
 
-const { value: selectedDate, errorMessage: dateError } = useField<string>('movingDate')
-const { value: flexibleOption, errorMessage: radioError } = useField('flexible')
+const { value: movingDate, errorMessage: movingDateError } = useField<string>('movingDate')
+const { value: cleaningDate, errorMessage: cleaningDateError } = useField<string>('cleaningDate')
+const { value: flexibleDate, errorMessage: radioError } = useField<boolean>('flexibleDate')
 
-const formatDate = ref(selectedDate.value ? new Date(selectedDate.value) : undefined)
+// const formatDate = ref(movingDate.value ? new Date(movingDate.value) : undefined)
 
-function setDate(date: Date) {
-  selectedDate.value = date?.toLocaleDateString('sv-SE')
+function setMovingDate(date: Date) {
+  movingDate.value = date?.toLocaleDateString('sv-SE')
+}
+
+function setCleaningDate(date: Date) {
+  cleaningDate.value = date?.toLocaleDateString('sv-SE')
 }
 
 const handleSubmit = async () => {
   const { valid } = await validate()
   if (valid) {
+    useBookingStore().updateBooking({
+      moving_date: movingDate.value,
+      flexible_date: flexibleDate.value,
+      cleaning_date: cleaningDate.value,
+    })
     emit('next', {
       moving: {
-        movingDate: selectedDate.value,
-        flexible: flexibleOption.value,
+        moving_date: movingDate.value,
+        flexible: flexibleDate.value,
       },
     })
   }
 }
 
-watch(selectedDate, (newValue) => {
+watch(movingDate, (newValue) => {
   useBookingStore().updateBooking({
-    movingDate: newValue,
+    moving_date: newValue,
   })
 })
-watch(flexibleOption, (newValue) => {
+watch(flexibleDate, (newValue) => {
   useBookingStore().updateBooking({
-    flexibleDate: newValue as string,
+    flexible_date: newValue,
   })
 })
-
 </script>
 <template lang="">
   <form @submit.prevent="handleSubmit">
@@ -69,26 +85,46 @@ watch(flexibleOption, (newValue) => {
     <div class="grid gap-4 mt-4">
       <div className="grid gap-2">
         <label className="font-semibold" htmlFor="in_label"> Välj datum </label>
-        <FloatLabel variant="in" class="rounded-md">
-          <DatePicker
-            v-model="formatDate"
-            size="small"
-            fluid
-            inputId="in_label"
-            showIcon
-            dateFormat="dd/mm/yy"
-            iconDisplay="input"
-            @update:model-value="setDate"
-          />
-          <label for="in_label">Flyttdatum</label>
-        </FloatLabel>
-        <span className="text-sm font-semibold text-red-500" v-if="dateError">
-          Vänligen välj ett datum
-        </span>
+        <div>
+          <FloatLabel variant="in" class="rounded-md">
+            <!-- v-model="formatDate" -->
+            <DatePicker
+              size="small"
+              fluid
+              inputId="in_label"
+              showIcon
+              dateFormat="dd/mm/yy"
+              iconDisplay="input"
+              @update:model-value="setMovingDate"
+            />
+            <label for="in_label">Flyttdatum</label>
+          </FloatLabel>
+          <span className="text-sm font-semibold text-red-500" v-if="movingDateError">
+            Vänligen välj ett flyttdatum
+          </span>
+        </div>
+        <div v-if="services.includes('Flyttstädning')">
+          <FloatLabel variant="in" class="rounded-md">
+            <!-- v-model="formatDate" -->
+            <DatePicker
+              size="small"
+              fluid
+              inputId="in_label"
+              showIcon
+              dateFormat="dd/mm/yy"
+              iconDisplay="input"
+              @update:model-value="setCleaningDate"
+            />
+            <label for="in_label">Städdatum</label>
+          </FloatLabel>
+          <span className="text-sm font-semibold text-red-500" v-if="cleaningDateError">
+            Vänligen välj ett städdatum
+          </span>
+        </div>
       </div>
       <div className="grid gap-2">
         <label className="font-semibold">Är ditt flyttdatum flexibelt?</label>
-        <RadioButtonGroup v-model="flexibleOption" name="flexible" class="flex gap-2">
+        <RadioButtonGroup v-model="flexibleDate" name="flexible" class="flex gap-2">
           <div
             v-for="option in flexibleOptions"
             @click="selectOption(option.value)"
