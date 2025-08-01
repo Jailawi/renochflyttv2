@@ -5,39 +5,27 @@ import { date } from 'yup';
 import { storeToRefs } from 'pinia';
 import { useBookingStore } from '@/stores/booking'
 
-const props = defineProps({
-    movingDate: {
-        type: String,
-    },
-    flexibleDate: {
-        type: String,
-    },
-    area: {
-        type: Number,
-    },
-})
-
 const overviewFields = [
   {
     label: 'Önskat datum',
-    id: 'movingDate'
+    id: 'moving_date'
   },
   {
     label: 'Flexibelt datum',
-    id: 'flexibleDate'
+    id: 'is_flexible_date'
   },
   {
     label: 'Antal kvm',
-    id: 'currentAddress.area'
+    id: 'current_address.living_area'
   },
 ]
 const store = useBookingStore()
 const {booking} = storeToRefs(store)
 
-const getNestedValue = (obj: any, path: string): any  =>{
-  return path.split('.').reduce((acc, part) => acc?.[part], obj);
+const getNestedValue = (obj: any, path: string): any  => {
+  const result = path.split('.').reduce((acc, part) => acc?.[part], obj);
+  return result == true ? 'Ja' : result == false ? 'Nej' : result
 }
-
 
 </script>
 <template>

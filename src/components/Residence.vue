@@ -70,7 +70,7 @@ const validationSchema = yup.object({
       schema
         .typeError('Ange våning')
         .required('Ange våning')
-        .positive('Ange en positiv siffra')
+        .min(0, 'Ange våning 0 eller högre')
         .integer('Ange ett heltal'),
     otherwise: (schema: any) => schema.notRequired(),
   }),
@@ -89,12 +89,12 @@ const handleSubmit = async () => {
   const { valid } = await validate()
   if (valid) {
     bookingStore.updateBooking({
-      [residence + 'Address']: {
+      [residence + '_address']: {
         address: address.value,
-        type: type.value,
-        area: area.value,
+        residence_type: type.value,
+        living_area: area.value,
         floor: floor.value,
-        access: access.value,}
+        accessibility: access.value,}
     })
     emit('next', {
       ['residence' + residence]: {
@@ -136,11 +136,11 @@ onMounted(() => {
   initMap()
 })
 
-watch(area, (newArea) => {
+watch(area, (newArea: number) => {
   if (residence === 'current') {
     bookingStore.updateBooking({
-      currentAddress: {
-        area: newArea,
+      current_address: {
+        living_area: newArea,
       }
     })
   }
@@ -188,7 +188,7 @@ watch(area, (newArea) => {
       <div v-if="residence === 'current'" class="grid gap-2">
         <FloatLabel variant="in" class="">
           <InputText
-            v-model="area"
+            v-model.number="area"
             inputId="area"
             type="number"
             step="1"

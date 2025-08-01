@@ -12,12 +12,12 @@ const bookingStore = useBookingStore()
 const services = computed(() => bookingStore.booking.services || [])
 
 const flexibleOptions = ref([
-  { label: 'Ja', value: 'Ja' },
-  { label: 'Nej', value: 'Nej' },
+  { label: 'Ja', value: true },
+  { label: 'Nej', value: false },
 ])
 
 const selectOption = (value: any) => {
-  flexibleDate.value = value
+  isFlexibleDate.value = value
 }
 
 const validationSchema = yup.object({
@@ -25,7 +25,7 @@ const validationSchema = yup.object({
   cleaningDate: services.value.includes('Flyttstädning')
     ? yup.string().required('Flyttstädning kräver ett datum')
     : yup.string().notRequired(),
-  flexibleDate: yup.boolean().required('Ange om flyttdatum är flexibelt'),
+  isFlexibleDate: yup.boolean().required('Ange om flyttdatum är flexibelt'),
 })
 
 const { validate, values } = useForm({
@@ -34,7 +34,7 @@ const { validate, values } = useForm({
 
 const { value: movingDate, errorMessage: movingDateError } = useField<string>('movingDate')
 const { value: cleaningDate, errorMessage: cleaningDateError } = useField<string>('cleaningDate')
-const { value: flexibleDate, errorMessage: radioError } = useField<boolean>('flexibleDate')
+const { value: isFlexibleDate, errorMessage: radioError } = useField<boolean>('isFlexibleDate')
 
 // const formatDate = ref(movingDate.value ? new Date(movingDate.value) : undefined)
 
@@ -51,13 +51,13 @@ const handleSubmit = async () => {
   if (valid) {
     useBookingStore().updateBooking({
       moving_date: movingDate.value,
-      flexible_date: flexibleDate.value,
+      is_flexible_date: isFlexibleDate.value,
       cleaning_date: cleaningDate.value,
     })
     emit('next', {
       moving: {
         moving_date: movingDate.value,
-        flexible: flexibleDate.value,
+        flexible: isFlexibleDate.value,
       },
     })
   }
@@ -68,9 +68,10 @@ watch(movingDate, (newValue) => {
     moving_date: newValue,
   })
 })
-watch(flexibleDate, (newValue) => {
+watch(isFlexibleDate, (newValue) => {
+  console.log("changed: ", newValue)
   useBookingStore().updateBooking({
-    flexible_date: newValue,
+    is_flexible_date: newValue,
   })
 })
 </script>
@@ -124,14 +125,14 @@ watch(flexibleDate, (newValue) => {
       </div>
       <div className="grid gap-2">
         <label className="font-semibold">Är ditt flyttdatum flexibelt?</label>
-        <RadioButtonGroup v-model="flexibleDate" name="flexible" class="flex gap-2">
+        <RadioButtonGroup v-model="isFlexibleDate" name="flexible" class="flex gap-2">
           <div
             v-for="option in flexibleOptions"
             @click="selectOption(option.value)"
             class="flex w-full items-center gap-2 border-1 border-gray-300 rounded-md px-2 py-3.5 cursor-pointer bg-white hover:bg-gray-100"
           >
-            <RadioButton :inputId="option.value" :value="option.value" />
-            <label className="cursor-pointer" :for="option.value">{{ option.value }}</label>
+            <RadioButton :inputId="option.label" :value="option.value" />
+            <label className="cursor-pointer" :for="option.label">{{ option.label }}</label>
           </div>
         </RadioButtonGroup>
         <span className="text-sm font-semibold text-red-500" v-if="radioError">

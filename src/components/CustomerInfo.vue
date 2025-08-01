@@ -17,8 +17,8 @@ import { useBookingStore } from '@/stores/booking'
 const emit = defineEmits(['prev', 'next', 'submit'])
 
 const rutavdragOptions = ref([
-  { label: 'Ja', value: 'Ja' },
-  { label: 'Nej', value: 'Nej' },
+  { label: 'Ja', value: true },
+  { label: 'Nej', value: false },
 ])
 
 
@@ -30,7 +30,7 @@ const validationSchema = computed(() =>
   yup.object({
     name: yup.string().required('Ange fullständigt namn'),
     ssn: yup.string().required('Ange personnummer'),
-    rutavdrag: yup.string().required('Ange om du är berättigad till rutavdrag'),
+    rutavdrag: yup.boolean().required('Ange om du är berättigad till rutavdrag'),
     email: yup.string().email('Ange en giltig e-postadress').required('Ange e-postadress'),
     phone: yup.string().min(8, 'Ange giltigt nummer').required('Ange telefonnummer'),
     message: yup.string().optional(),
@@ -128,7 +128,7 @@ const handleSubmit = async () => {
             class="flex w-full items-center gap-2 border-1 border-gray-300 rounded-md px-2 py-3.5 cursor-pointer bg-white hover:bg-gray-100"
           >
             <RadioButton :inputId="option.value" :value="option.value" />
-            <label className="cursor-pointer" :for="option.value">{{ option.value }}</label>
+            <label className="cursor-pointer" :for="option.value">{{ option.label }}</label>
           </div>
         </RadioButtonGroup>
         <span className="text-sm font-semibold text-red-500" v-if="rutavdragError">
