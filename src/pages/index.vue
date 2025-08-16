@@ -26,7 +26,7 @@ const overview = (payload: Partial<DataType>) => {
 </script>
 
 <template>
-  <main class="py-5">
+  <main class="pb-12">
     <div className="lg:w-[1200px] md:w-[600px] sm:w-[500px] w-[400px] grid gap-5">
       <h1 className="text-4xl text-center">
         Begär en kostnadsfri offert för er flytt – snabbt och enkelt!

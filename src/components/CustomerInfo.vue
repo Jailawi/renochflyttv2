@@ -14,7 +14,7 @@ import {
 import * as yup from 'yup'
 import { useBookingStore } from '@/stores/booking'
 
-const emit = defineEmits(['prev', 'next', 'submit'])
+const emit = defineEmits(['prev', 'next', 'submit', 'toggle'])
 
 const rutavdragOptions = ref([
   { label: 'Ja', value: true },
@@ -103,7 +103,7 @@ const handleSubmit = async () => {
         <div className="grid gap-2 w-full h-full">
           <FloatLabel variant="in">
             <InputText id="email" v-model="email" type="email" size="small" fluid />
-            <label for="email">Email</label>
+            <label for="email">Mejladress</label>
           </FloatLabel>
           <span className="text-sm font-semibold text-red-500" v-if="emailError">
             {{ emailError }}
@@ -163,6 +163,7 @@ const handleSubmit = async () => {
       </div>
       <div class="flex gap-2">
         <Button @click="emit('prev')" label="Gå Tillbaka" severity="secondary" />
+        <Button @click="emit('toggle')" label="Beräkna Offert" severity="primary" />
         <Button type="submit" label="Skicka förfrågan" />
       </div>
     </div>

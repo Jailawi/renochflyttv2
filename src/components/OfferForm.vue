@@ -10,7 +10,8 @@ import { useRouter } from 'vue-router/auto'
 import { useBookingStore } from '@/stores/booking'
 import { apiClient } from '@/main'
 
-const step = ref(1)
+const step = ref(5)
+const toggle = false
 
 const router = useRouter()
 
@@ -25,6 +26,10 @@ const next = () => {
   if (step.value < 5) {
     step.value++
   }
+}
+
+const toggleOfferCalc = () => {
+  step.value = toggle ? 5 : 6
 }
 
 const submit = () => {
@@ -59,7 +64,8 @@ const submit = () => {
     <MovingDate v-show="step === 2" @prev="prev" @next="next" />
     <Residence v-show="step === 3" @prev="prev" @next="next" residence="current" />
     <Residence v-show="step === 4" @prev="prev" @next="next" residence="new" />
-    <CustomerInfo v-show="step === 5" @prev="prev" @next="next" @submit="submit" />
+    <CustomerInfo v-show="step === 5" @prev="prev" @toggle="" @submit="submit" />
+    <!-- <OfferCalculation v-show="step === 6" @toggle="toggleOfferCalc" /> -->
     <!-- <p className="text-wrap">{{ values }}</p> -->
   </div>
 </template>
