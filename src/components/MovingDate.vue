@@ -20,15 +20,15 @@ const selectOption = (value: any) => {
   isFlexibleDate.value = value
 }
 
-const validationSchema = yup.object({
+const validationSchema = computed(() => yup.object({
   movingDate: yup.string().required('Flyttdatum är obligatoriskt'),
   cleaningDate: services.value.includes('Flyttstädning')
     ? yup.string().required('Flyttstädning kräver ett datum')
     : yup.string().notRequired(),
   isFlexibleDate: yup.boolean().required('Ange om flyttdatum är flexibelt'),
-})
+}))
 
-const { validate, values } = useForm({
+const { validate, values, meta } = useForm({
   validationSchema,
 })
 
@@ -54,12 +54,7 @@ const handleSubmit = async () => {
       is_flexible_date: isFlexibleDate.value,
       cleaning_date: cleaningDate.value,
     })
-    emit('next', {
-      moving: {
-        moving_date: movingDate.value,
-        flexible: isFlexibleDate.value,
-      },
-    })
+    emit('next')
   }
 }
 
@@ -69,7 +64,6 @@ watch(movingDate, (newValue) => {
   })
 })
 watch(isFlexibleDate, (newValue) => {
-  console.log("changed: ", newValue)
   useBookingStore().updateBooking({
     is_flexible_date: newValue,
   })
@@ -141,7 +135,11 @@ watch(isFlexibleDate, (newValue) => {
       </div>
       <div class="flex gap-2">
         <Button @click="emit('prev')" label="Gå Tillbaka" severity="secondary" />
-        <Button type="submit" label="Nästa" />
+        <Button 
+        :class="[!meta.valid ? '!cursor-not-allowed' : '']"
+        :disabled="!meta.valid"
+        type="submit"
+        label="Nästa" />
       </div>
     </div>
     <!-- {{ values }} -->

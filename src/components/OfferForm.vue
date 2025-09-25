@@ -5,12 +5,12 @@ import { Form, useField, useForm } from 'vee-validate'
 import ServiceSelection from './ServiceSelection.vue'
 import MovingDate from './MovingDate.vue'
 import Residence from './Residence.vue'
-import CustomerInfo from './CustomerInfo.vue'
+import Contact from './Contact.vue'
 import { useRouter } from 'vue-router/auto'
 import { useBookingStore } from '@/stores/booking'
 import { apiClient } from '@/main'
 
-const step = ref(5)
+const step = ref(1)
 const toggle = false
 
 const router = useRouter()
@@ -22,7 +22,6 @@ const prev = () => {
 }
 
 const next = () => {
-  console.log("Current booking: ", useBookingStore().booking)
   if (step.value < 5) {
     step.value++
   }
@@ -34,16 +33,16 @@ const toggleOfferCalc = () => {
 
 const submit = () => {
   const plainBooking = (useBookingStore().booking);
-  console.log("Submitting booking data: ", plainBooking)
-  apiClient.post('/booking', plainBooking)
+  const headers = { 'Content-Type': 'application/json', "X-API-KEY": "RvCiOYMDImW02G4IUEH6fU4qxnbEkv9s" };
+  apiClient.post('/booking', plainBooking, { headers })
     .then((response: any) => {
-      console.log('Booking submitted successfully:', response.data)
+      // console.log('Booking submitted successfully:', response.data)
     })
     .catch((error: any) => {
       console.error('Error submitting booking:', error)
     })
-  console.log('Form submitted')
-  // router.push('/confirmation')
+  //router.replace('/offert-bekraftelse')
+  window.location.href = 'https://renochflytt.se/offert-bekraftelse'
 }
 
 
@@ -64,7 +63,7 @@ const submit = () => {
     <MovingDate v-show="step === 2" @prev="prev" @next="next" />
     <Residence v-show="step === 3" @prev="prev" @next="next" residence="current" />
     <Residence v-show="step === 4" @prev="prev" @next="next" residence="new" />
-    <CustomerInfo v-show="step === 5" @prev="prev" @toggle="" @submit="submit" />
+    <Contact v-show="step === 5" @prev="prev" @toggle="" @submit="submit" />
     <!-- <OfferCalculation v-show="step === 6" @toggle="toggleOfferCalc" /> -->
     <!-- <p className="text-wrap">{{ values }}</p> -->
   </div>

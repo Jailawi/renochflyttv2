@@ -6,10 +6,13 @@
     <link href="/src/styles.css" rel="stylesheet" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Vite App</title>
+    <script>
+      window.initMap = function() {};
+    </script>
     <script
       async
       defer
-      src="https://maps.googleapis.com/maps/api/js?key=AIzaSyAGsYtNDNHQfwRtKWFA8i8AmK8GKWqrGNU&loading=async&libraries=places"
+      src="https://maps.googleapis.com/maps/api/js?key=AIzaSyAGsYtNDNHQfwRtKWFA8i8AmK8GKWqrGNU&loading=async&libraries=places&callback=initMap"
     ></script>
   </head>
   <body>

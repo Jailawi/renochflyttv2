@@ -4,9 +4,10 @@ import { useField, useForm } from 'vee-validate'
 
 declare global {
   interface Window {
-    vueInitMapCallback: () => void
+    initMap: () => void;
   }
 }
+
 import {
   Button,
   AutoComplete,
@@ -77,7 +78,7 @@ const validationSchema = yup.object({
   access: yup.string().required('Ange tillgång'),
 })
 
-const { validate, values } = useForm({ validationSchema })
+const { validate, values, meta } = useForm({ validationSchema })
 
 const { value: address, errorMessage: adressError } = useField<string>('address')
 const { value: type, errorMessage: typeError } = useField<string>('type')
@@ -96,25 +97,17 @@ const handleSubmit = async () => {
         floor: floor.value,
         accessibility: access.value,}
     })
-    emit('next', {
-      ['residence' + residence]: {
-        address: address.value,
-        type: type.value,
-        area: area.value,
-        floor: floor.value,
-        access: access.value,
-      },
-    })
+    emit('next')
   }
 }
 
 const inputText = ref()
 
-const swedenBounds = new google.maps.LatLngBounds(
-  new google.maps.LatLng(55.0, 11.0), // Southwest corner
-  new google.maps.LatLng(69.0, 24.2), // Northeast corner
-)
 const initMap = () => {
+  const swedenBounds = new google.maps.LatLngBounds(
+    new google.maps.LatLng(55.0, 11.0), // Southwest corner
+    new google.maps.LatLng(69.0, 24.2), // Northeast corner
+  )
   google.maps.event.trigger(inputText.value.$el, 'focus')
   const input = inputText.value.$el
   input.placeholder = ''
@@ -133,7 +126,14 @@ const initMap = () => {
 }
 
 onMounted(() => {
-  initMap()
+  if (window.google && window.google.maps) {
+    // Google Maps already loaded
+    initMap();
+  } else {
+    // Set callback for when script loads
+    window.initMap = initMap;
+    initMap();
+  }
 })
 
 watch(area, (newArea: number) => {
@@ -163,14 +163,14 @@ watch(area, (newArea: number) => {
             fluid
             ref="inputText"
           />
-          <label for="Adress">{{ context.adress }}</label>
+          <label id="Adress">{{ context.adress }}</label>
         </FloatLabel>
         <span className="text-sm font-semibold text-red-500" v-if="adressError">
           {{ adressError }}
         </span>
       </div>
       <div class="grid gap-2">
-        <label class="font-semibold" for="type">Typ av bostad</label>
+        <label class="font-semibold">Typ av bostad</label>
         <RadioButtonGroup v-model="type" name="ingredient" class="flex gap-4">
           <div
             v-for="type in residenceTypes"
@@ -195,7 +195,7 @@ watch(area, (newArea: number) => {
             fluid
             @keydown="(event) => blockedNumberChars.includes(event.key) && event.preventDefault()"
           />
-          <label for="area">Bostads storlek (kvm)</label>
+          <label id="area">Bostads storlek (kvm)</label>
         </FloatLabel>
         <span className="text-sm font-semibold text-red-500" v-if="areaError">
           {{ areaError }}
@@ -206,7 +206,7 @@ watch(area, (newArea: number) => {
           <div class="w-1/2">
             <FloatLabel variant="in">
               <Select v-model="access" inputId="access" :options="accessOptions" fluid />
-              <label for="access">Tillgång</label>
+              <label id="access">Tillgång</label>
             </FloatLabel>
             <span className="text-sm font-semibold text-red-500" v-if="accessError">
               {{ accessError }}
@@ -214,7 +214,14 @@ watch(area, (newArea: number) => {
           </div>
           <div class="w-1/2">
             <FloatLabel v-if="type === 'Lägenhet'" variant="in">
-              <InputNumber v-model="floor" inputId="floor" :useGrouping="false" fluid />
+              <InputText
+                v-model.number="floor"
+                inputId="floor"
+                type="number"
+                step="1"
+                fluid
+                @keydown="(event) => blockedNumberChars.includes(event.key) && event.preventDefault()"
+              />
               <label for="floor">Våningsplan</label>
             </FloatLabel>
             <span className="text-sm font-semibold text-red-500" v-if="floorError">
@@ -227,7 +234,11 @@ watch(area, (newArea: number) => {
 
       <div class="flex gap-2">
         <Button type="button" label="Gå Tillbaka" severity="secondary" @click="emit('prev')" />
-        <Button type="submit" label="Nästa" />
+        <Button
+        :class="[!meta.valid ? '!cursor-not-allowed' : '']"
+        :disabled="!meta.valid"
+        type="submit"
+        label="Nästa" />
       </div>
     </div>
   </form>

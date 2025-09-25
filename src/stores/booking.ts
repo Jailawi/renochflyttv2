@@ -37,7 +37,6 @@ export const useBookingStore = defineStore('booking', {
 ),
   actions: {
     updateBooking(data: Partial<Booking>) {
-      console.log("received data: ", data)
       this.booking = { ...this.booking, ...data }
     },
     clearBooking() {
