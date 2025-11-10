@@ -1,9 +1,10 @@
 <script setup lang="ts">
 import { value } from '@primeuix/themes/aura/knob';
-import { Divider } from 'primevue'
+import { Divider, ProgressSpinner } from 'primevue'
 import { date } from 'yup';
 import { storeToRefs } from 'pinia';
 import { useBookingStore } from '@/stores/booking'
+import { useErrorStore } from '@/stores/errorStore'
 
 const overviewFields = [
   {
@@ -20,6 +21,7 @@ const overviewFields = [
   },
 ]
 const store = useBookingStore()
+const errorStore = useErrorStore()
 const {booking} = storeToRefs(store)
 
 const getNestedValue = (obj: any, path: string): any  => {
@@ -45,7 +47,11 @@ const getNestedValue = (obj: any, path: string): any  => {
             <p class="text-gray-600">Totalt</p>
             <p class="text-gray-600 text-xs">Inkl. Rutavdrag</p>
           </div>
-          <p class="font-semibold">Lämnas vid offert</p>
+          <div class="flex justify-end items-center">
+            <ProgressSpinner v-if="store.calculating" style="width: 50px; height: 50px" fill="transparent"
+              animationDuration=".5s" />
+            <p class="font-semibold" v-else>{{ store.booking.estimated_price != null ? store.booking.estimated_price.toLocaleString().replace(",", " ") + " kr" : "Beräknar din offert" }}</p>
+          </div>
         </div>
       </div>
     </div>

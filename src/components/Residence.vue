@@ -75,7 +75,14 @@ const validationSchema = yup.object({
         .integer('Ange ett heltal'),
     otherwise: (schema: any) => schema.notRequired(),
   }),
-  access: yup.string().required('Ange tillgång'),
+  access: yup.string().when('type', {
+    is: 'Lägenhet',
+    then: (schema: any) =>
+      schema
+        .typeError('Ange tillgång')
+        .required('Ange tillgång'),
+    otherwise: (schema: any) => schema.notRequired(),
+  })
 })
 
 const { validate, values, meta } = useForm({ validationSchema })
@@ -85,7 +92,7 @@ const { value: type, errorMessage: typeError } = useField<string>('type')
 const { value: area, errorMessage: areaError } = useField<number>('area')
 const { value: floor, errorMessage: floorError } = useField<number>('floor')
 const { value: access, errorMessage: accessError } = useField<string>('access')
-
+const  placeId = ref('')
 const handleSubmit = async () => {
   const { valid } = await validate()
   if (valid) {
@@ -95,7 +102,8 @@ const handleSubmit = async () => {
         residence_type: type.value,
         living_area: area.value,
         floor: floor.value,
-        accessibility: access.value,}
+        accessibility: access.value,
+      }
     })
     emit('next')
   }
@@ -104,6 +112,12 @@ const handleSubmit = async () => {
 const inputText = ref()
 
 const initMap = () => {
+
+  if (!window.google?.maps?.LatLng || !window.google?.maps?.places?.Autocomplete) {
+  console.warn('Google Maps API not fully loaded yet');
+  return;
+}
+
   const swedenBounds = new google.maps.LatLngBounds(
     new google.maps.LatLng(55.0, 11.0), // Southwest corner
     new google.maps.LatLng(69.0, 24.2), // Northeast corner
@@ -120,20 +134,20 @@ const initMap = () => {
 
   autocomplete.addListener('place_changed', () => {
     const place = autocomplete.getPlace()
-
     address.value = place.formatted_address || input.value
   })
 }
 
 onMounted(() => {
-  if (window.google && window.google.maps) {
-    // Google Maps already loaded
-    initMap();
-  } else {
-    // Set callback for when script loads
-    window.initMap = initMap;
-    initMap();
-  }
+  const checkGoogleMaps = () => {
+    if (window.google?.maps?.LatLng && window.google?.maps?.places?.Autocomplete) {
+      initMap();
+    } else {
+      setTimeout(checkGoogleMaps, 100);
+    }
+  };
+  
+  checkGoogleMaps();
 })
 
 watch(area, (newArea: number) => {
@@ -204,7 +218,7 @@ watch(area, (newArea: number) => {
       <div class="grid gap-2">
         <div className="flex gap-2">
           <div class="w-1/2">
-            <FloatLabel variant="in">
+            <FloatLabel v-if="type === 'Lägenhet'" variant="in">
               <Select v-model="access" inputId="access" :options="accessOptions" fluid />
               <label id="access">Tillgång</label>
             </FloatLabel>

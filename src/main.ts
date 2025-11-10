@@ -17,7 +17,7 @@ app.use(createPinia())
 
 // In development, use empty baseURL so Vite proxy can handle requests
 // In production, use the full API URL
-const baseURL = 'https://renochflytt-backend-881745647561.europe-north2.run.app' //import.meta.env.DEV ? '' : (import.meta.env.VITE_API_BASE_URL || 'http://localhost:8080')
+const baseURL = "http://localhost:8080"//'https://renochflytt-backend-881745647561.europe-north2.run.app' //import.meta.env.DEV ? '' : (import.meta.env.VITE_API_BASE_URL || 'http://localhost:8080')
 
 axios.defaults.baseURL = baseURL
 axios.defaults.headers.common['Content-Type'] = 'application/json'

@@ -72,11 +72,11 @@ const handleSubmit = async () => {
 <template lang="">
   <form @submit.prevent="handleSubmit">
     <h1 className="text-2xl">Era kontaktuppgifter</h1>
-    <div class="flex flex-col gap-4 mt-4">
+    <div class="flex flex-col gap-4 mt-4 !text-base">
       <div className="flex gap-2">
         <div class="grid gap-2 w-full h-full">
           <FloatLabel variant="in">
-            <InputText id="name" v-model="name" size="small" fluid />
+            <InputText class="!text-base" id="name" v-model="name" size="small" fluid />
             <label for="name">Fullständigt namn</label>
           </FloatLabel>
           <span className="text-sm font-semibold text-red-500" v-if="nameError">
@@ -85,7 +85,7 @@ const handleSubmit = async () => {
         </div>
         <div class="grid gap-2 w-full h-full">
           <FloatLabel variant="in">
-            <InputMask id="ssn" v-model="ssn" :mask="'999999-9999'" size="small" fluid />
+            <InputMask class="!text-base" id="ssn" v-model="ssn" :mask="'999999-9999'" size="small" fluid />
             <label for="ssn">Personnummer</label>
           </FloatLabel>
           <span className="text-sm font-semibold text-red-500" v-if="ssnError">
@@ -96,7 +96,7 @@ const handleSubmit = async () => {
       <div className="flex gap-2">
         <div className="grid gap-2 w-full h-full">
           <FloatLabel variant="in">
-            <InputText id="email" v-model="email" type="email" size="small" fluid />
+            <InputText class="!text-base" id="email" v-model="email" type="email" size="small" fluid />
             <label for="email">Mejladress</label>
           </FloatLabel>
           <span className="text-sm font-semibold text-red-500" v-if="emailError">
@@ -105,7 +105,7 @@ const handleSubmit = async () => {
         </div>
         <div class="grid gap-2 w-full h-full">
           <FloatLabel variant="in">
-            <InputText id="phone" v-model="phone" type="number" size="small" fluid />
+            <InputText class="!text-base" id="phone" v-model="phone" type="number" size="small" fluid />
             <label for="phone">Telefonnummer</label>
           </FloatLabel>
           <span className="text-sm font-semibold text-red-500" v-if="phoneError">
@@ -132,7 +132,7 @@ const handleSubmit = async () => {
       <div className="grid gap-2">
         <label className="font-semibold">Övriga önskemål:</label>
         <FloatLabel variant="in">
-          <Textarea id="message" v-model="message" rows="5" cols="30" fluid />
+          <Textarea class="!text-base" id="message" v-model="message" rows="5" cols="30" fluid />
           <label for="message">Valfira kommentarer</label>
         </FloatLabel>
         <span className="text-sm font-semibold text-red-500" v-if="messageError">
@@ -157,11 +157,6 @@ const handleSubmit = async () => {
       </div>
       <div class="flex gap-2">
         <Button @click="emit('prev')" label="Gå Tillbaka" severity="secondary" />
-        <Button @click="emit('toggle')"
-        :class="[!meta.valid ? '!cursor-not-allowed' : '']"
-        :disabled="true"
-        label="Beräkna Offert" severity="primary"
-         />
         <Button
         :class="[!meta.valid ? '!cursor-not-allowed' : '']"
         :disabled="!meta.valid"

@@ -5,6 +5,7 @@ export interface Booking {
   moving_date?: string
   cleaning_date?: string
   is_flexible_date?: boolean
+  estimated_price?: number | null
   current_address?: {
     address?: string
     residence_type?: string
@@ -32,9 +33,9 @@ export interface Booking {
 
 export const useBookingStore = defineStore('booking', {
   state: () => ({
-    booking: {} as Booking
-  }
-),
+    booking: {} as Booking,
+    calculating: false
+  }),
   actions: {
     updateBooking(data: Partial<Booking>) {
       this.booking = { ...this.booking, ...data }
@@ -42,5 +43,11 @@ export const useBookingStore = defineStore('booking', {
     clearBooking() {
       this.booking = {}
     },
+    setEstimatedPrice(price: number | null) {
+      this.booking.estimated_price = price
+    },
+    setCalculating(calculating: boolean) {
+      this.calculating = calculating
+    }
   },
 })

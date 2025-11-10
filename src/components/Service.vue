@@ -35,12 +35,12 @@ const toggleChecked = () => {
     <button
       @click.prevent="toggleChecked()"
       :class="[
-        'grid p-5 max-w-40 max-h-40 border-1 rounded-md cursor-pointer hover:bg-gray-50 transition-all duration-300 ease-in-out',
+        'group grid p-5 max-w-40 max-h-40 border-1 rounded-md cursor-pointer hover:bg-gray-50 transition-all duration-300 ease-in-out',
         checked ? 'bg-orange-100 hover:bg-orange-100 border-orange-400' : 'border-slate-200',
       ]"
     >
       <div class="flex flex-col items-center justify-center gap-2">
-        <img :src="icon" :alt="label" width="60" height="60" />
+        <img :src="icon" :alt="label" width="60" height="60" class="group-hover:scale-105 transition-transform duration-300 ease-in-out"/>
         <span class="flex text-lg font-medium items-center justify-center">{{ label }}</span>
       </div>
     </button>
