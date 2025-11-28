@@ -16,7 +16,7 @@ app.use(createPinia())
 
 // In development, use empty baseURL so Vite proxy can handle requests
 // In production, use the full API URL
-const baseURL = "https://renochflytt-backend-dev-881745647561.europe-north2.run.app" // "http://localhost:8080"//'https://renochflytt-backend-881745647561.europe-north2.run.app' //import.meta.env.DEV ? '' : (import.meta.env.VITE_API_BASE_URL || 'http://localhost:8080')
+const baseURL = import.meta.env.VITE_API_BASE_URL || "http://localhost:8080"
 
 axios.defaults.baseURL = baseURL
 axios.defaults.headers.common['Content-Type'] = 'application/json'
@@ -29,6 +29,18 @@ export const apiClient = axios.create({
 })
 
 window.dataLayer = window.dataLayer || [];
+
+const loadGoogleMapsApi = () => {
+  return new Promise<void>((resolve, reject) => {
+    const script = document.createElement('script');
+    script.src = `https://maps.googleapis.com/maps/api/js?key=${import.meta.env.VITE_GOOGLE_PLACES_API_KEY}&libraries=places&callback=initMap`;
+    script.async = true;
+    script.defer = true;
+    window.initMap = () => resolve();
+    script.onerror = (error) => reject(error);
+    document.head.appendChild(script);
+  });
+};
 
 const MyPreset = definePreset(Aura, {
   semantic: {
@@ -90,4 +102,10 @@ app.use(PrimeVue, {
   },
 })
 
-app.mount('#app')
+loadGoogleMapsApi().then(() => {
+  app.mount('#app');
+})
+.catch((error) => {
+  console.error('Error loading Google Maps API:', error);
+  app.mount('#app');
+});
