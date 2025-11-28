@@ -13,6 +13,8 @@ import { useErrorStore } from '@/stores/errorStore'
 
 const step = ref(1)
 
+const bookingStore = useBookingStore()
+
 const emit = defineEmits(['toggleMenu'])
 
 const router = useRouter()
@@ -24,28 +26,56 @@ const prev = () => {
     step.value--
   }
   if (step.value === 4) {
-    console.log("Estimate booking:", useBookingStore().booking)
-    useBookingStore().setEstimatedPrice(null);
+    bookingStore.setEstimatedPrice(null);
   }
 
 }
 
 const next = async () => {
   if (step.value < 5) {
+    if (step.value === 1) {
+      window.dataLayer.push({
+        event: 'offer_form_progress',
+        eventModel: {
+          form_id: 'renochflytt_offer_form_id',
+          form_name: 'Offer Form',
+          form_destination: window.location.href,
+          page_number: step.value,
+          services: bookingStore.booking.services,
+        }
+      });
+    } else {
+      window.dataLayer.push({
+        event: 'offer_form_progress',
+        eventModel: {
+          form_id: 'renochflytt_offer_form_id',
+          form_name: 'Offer Form',
+          form_destination: window.location.href,
+          page_number: step.value,
+        }
+      });
+    }
     step.value++
   }
   if (step.value === 5) {
-    console.log("Estimate booking:", useBookingStore().booking)
-    useBookingStore().setCalculating(true);
+    window.dataLayer.push({
+      event: 'offer_form_progress',
+      eventModel: {
+        form_id: 'renochflytt_offer_form_id',
+        form_name: 'Offer Form',
+        form_destination: window.location.href,
+        page_number: step.value,
+      }
+    });
+    bookingStore.setCalculating(true);
     try {
       emit('toggleMenu')
-      const response = await apiClient.post('/offer-estimate', useBookingStore().booking, { headers: { 'Content-Type': 'application/json', "X-API-KEY": "RvCiOYMDImW02G4IUEH6fU4qxnbEkv9s" } });
+      const response = await apiClient.post('/offer-estimate', bookingStore.booking, { headers: { 'Content-Type': 'application/json', "X-API-KEY": "RvCiOYMDImW02G4IUEH6fU4qxnbEkv9s" } });
       const data = response.data;
       const estimatedPrice = data['estimated_price'];
-      useBookingStore().setEstimatedPrice(estimatedPrice);
+      bookingStore.setEstimatedPrice(estimatedPrice);
       errorStore.clearError()
     } catch (error) {
-      // console.error("Could not estimate booking: ", error)
       errorStore.setError("Could not estimate booking", error)
     } finally {
       useBookingStore().setCalculating(false);
@@ -54,14 +84,33 @@ const next = async () => {
 }
 
 const submit =  async () => {
-  const plainBooking = (useBookingStore().booking);
+  const plainBooking = (bookingStore.booking);
   const headers = { 'Content-Type': 'application/json', "X-API-KEY": "RvCiOYMDImW02G4IUEH6fU4qxnbEkv9s" };
   try {
     const response = await apiClient.post('/booking', plainBooking, { headers });
-    // console.log('Booking submitted successfully:', response.data)
+    const bookingId = response.data['booking_id'];
+    window.dataLayer.push({
+      event: 'offer_form_submit',
+      eventModel: {
+        form_id: 'renochflytt_offer_form_id',
+        form_name: 'Offer Form',
+        form_destination: window.location.href,
+        entry_id: bookingId,
+        services: bookingStore.booking.services,
+        value: bookingStore.booking.estimated_price,
+        currency: "SEK",
+        user_data: {
+          email: bookingStore.booking.contact?.email,
+          phone_number: bookingStore.booking.contact?.phone,
+        },
+        page_number: step.value,
+      }
+    });
     window.location.href = 'https://renochflytt.se/offert-bekraftelse'
   } catch (error) {
     console.error('Error submitting booking:', error)
+  } finally {
+      bookingStore.setCalculating(false);
   }
 }
 

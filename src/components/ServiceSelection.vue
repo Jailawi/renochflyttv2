@@ -36,7 +36,7 @@ const handleSubmit = async () => {
 }
 </script>
 <template lang="">
-  <form className="flex flex-col sm:grid justify-start gap-4" @submit.prevent="handleSubmit">
+  <form className="grid sm:justify-start justify-center gap-4" @submit.prevent="handleSubmit">
     <div className="flex flex-col gap-2 overflow-hidden">
       <label className="font-medium"> Vad behöver du hjälp med? </label>
       <div class="grid grid-cols-2 gap-4">

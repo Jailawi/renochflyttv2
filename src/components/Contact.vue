@@ -21,6 +21,7 @@ const rutavdragOptions = ref([
   { label: 'Nej', value: false },
 ])
 
+const bookingStore = useBookingStore()
 
 const selectRutavdrag = (value: any) => {
   rutavdrag.value = value
@@ -54,7 +55,8 @@ const { value: consent, errorMessage: consentError } = useField<boolean>('consen
 const handleSubmit = async () => {
   const { valid } = await validate()
   if (valid) {
-    useBookingStore().updateBooking({
+    bookingStore.setCalculating(true);
+    bookingStore.updateBooking({
       contact: {
         name: name.value,
         ssn: ssn.value,
@@ -161,6 +163,7 @@ const handleSubmit = async () => {
         :class="[!meta.valid ? '!cursor-not-allowed' : '']"
         :disabled="!meta.valid"
         type="submit"
+        :loading="bookingStore.calculating"
         label="Skicka förfrågan"/>
       </div>
     </div>

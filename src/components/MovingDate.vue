@@ -71,7 +71,7 @@ watch(isFlexibleDate, (newValue) => {
 </script>
 <template lang="">
   <form @submit.prevent="handleSubmit">
-    <h1 className="text-2xl">Vi Flyttar den..</h1>
+    <h1 className="text-2xl">Vi flyttar den..</h1>
     <h3 className="text-medium">
       Ange ett preliminärt datum för er flytt. Om flexibelt flyttdatum önskas så kan detta väljas
       nedan.

@@ -37,7 +37,7 @@ const residenceTypes = ref([
 ])
 
 const context = {
-  title: residence === 'current' ? 'Vi Flyttar från..' : 'Vi Flyttar till..',
+  title: residence === 'current' ? 'Vi flyttar från..' : 'Vi flyttar till..',
   adress: residence === 'current' ? 'Nuvarande adress' : 'Ny adress',
   description: residence === 'current' ? 'nuvarande adress' : 'nya adress',
   adressValidation: residence === 'current' ? 'Ange nuvarande adress' : 'Ange flyttadress',
@@ -60,8 +60,8 @@ const validationSchema = yup.object({
     residence === 'current'
       ? yup
           .number()
-          .typeError('Ange bostads storlek')
-          .required('Ange bostads storlek')
+          .typeError('Ange bostadsstorlek')
+          .required('Ange bostadsstorlek')
           .positive('Ange en positiv siffra')
           .integer('Ange ett heltal')
       : yup.number().notRequired(),
@@ -209,7 +209,7 @@ watch(area, (newArea: number) => {
             fluid
             @keydown="(event) => blockedNumberChars.includes(event.key) && event.preventDefault()"
           />
-          <label id="area">Bostads storlek (kvm)</label>
+          <label id="area">Bostadsstorlek (kvm)</label>
         </FloatLabel>
         <span className="text-sm font-semibold text-red-500" v-if="areaError">
           {{ areaError }}
