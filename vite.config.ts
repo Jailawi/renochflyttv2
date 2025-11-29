@@ -9,7 +9,7 @@ import VueRouter from 'unplugin-vue-router/vite'
 
 // https://vite.dev/config/
 export default defineConfig({
-  base: '/offertforfragan/',
+  base: '/offertforfragan',
   plugins: [VueRouter(), vue(), vueJsx(), vueDevTools(), tailwindcss()],
   resolve: {
     alias: {
@@ -17,6 +17,7 @@ export default defineConfig({
     },
   },
   build: {
+    outDir: 'dist/offertforfragan',
     manifest: true,
     rollupOptions: {
       input: {
