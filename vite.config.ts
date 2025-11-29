@@ -17,7 +17,7 @@ export default defineConfig({
     },
   },
   build: {
-    outDir: 'dist/offertforfragan',
+    outDir: 'dist',
     manifest: true,
     rollupOptions: {
       input: {
