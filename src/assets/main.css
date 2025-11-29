@@ -6,9 +6,11 @@
 @import 'tailwindcss/utilities.css';
 
 #app {
-  /* margin: 0 auto; */
+  margin: 0 auto;
   padding: 1rem;
   font-weight: normal;
+  touch-action: manipulation;
+  overflow-x: hidden;
 }
 a,
 .green {
@@ -21,6 +23,8 @@ a,
   body {
     display: flex;
     place-items: center;
+    
+
   }
 
   #app {

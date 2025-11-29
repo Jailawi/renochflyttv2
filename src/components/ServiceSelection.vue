@@ -7,6 +7,7 @@ import truckIcon from './icons/truck.svg'
 import installIcon from './icons/install.svg'
 import cleaningIcon from './icons/cleaning.png'
 import packageIcon from './icons/package.png'
+import { useBookingStore } from '@/stores/booking'
 
 const services = [
   { id: 'moving', name: 'Flytthjälp', icon: truckIcon },
@@ -22,21 +23,22 @@ const validationSchema = yup.object({
 })
 
 const { validate, values, meta } = useForm({ validationSchema })
-const { value: selectedServices, errorMessage } = useField('services')
+const { value: selectedServices, errorMessage } = useField<string[]>('services')
 
 const handleSubmit = async () => {
   const { valid } = await validate()
   if (valid) {
-    emit('next', {
+    useBookingStore().updateBooking({
       services: selectedServices.value,
     })
+    emit('next')
   }
 }
 </script>
 <template lang="">
-  <form className="flex flex-col sm:grid justify-start gap-4" @submit.prevent="handleSubmit">
+  <form className="grid sm:justify-start justify-center gap-4" @submit.prevent="handleSubmit">
     <div className="flex flex-col gap-2 overflow-hidden">
-      <label className="font-medium" htmlFor=""> Vad behöver du hjälp med? </label>
+      <label className="font-medium"> Vad behöver du hjälp med? </label>
       <div class="grid grid-cols-2 gap-4">
         <Service
           v-for="service in services"
@@ -52,9 +54,9 @@ const handleSubmit = async () => {
     <div class="w-1/2">
       <Button
         :class="[!meta.valid ? '!cursor-not-allowed' : '']"
+        :disabled="!meta.valid"
         type="submit"
         label="Nästa"
-        :disabled="!meta.valid"
         >Nästa</Button
       >
     </div>

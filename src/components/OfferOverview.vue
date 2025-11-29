@@ -1,39 +1,33 @@
 <script setup lang="ts">
 import { value } from '@primeuix/themes/aura/knob';
-import { Divider } from 'primevue'
+import { Divider, ProgressSpinner } from 'primevue'
 import { date } from 'yup';
 import { storeToRefs } from 'pinia';
 import { useBookingStore } from '@/stores/booking'
-
-const props = defineProps({
-    movingDate: {
-        type: String,
-    },
-    flexibleDate: {
-        type: String,
-    },
-    area: {
-        type: Number,
-    },
-})
+import { useErrorStore } from '@/stores/errorStore'
 
 const overviewFields = [
   {
     label: 'Önskat datum',
-    id: 'movingDate'
+    id: 'moving_date'
   },
   {
     label: 'Flexibelt datum',
-    id: 'flexibleDate'
+    id: 'is_flexible_date'
   },
   {
     label: 'Antal kvm',
-    id: 'area'
+    id: 'current_address.living_area'
   },
 ]
 const store = useBookingStore()
+const errorStore = useErrorStore()
 const {booking} = storeToRefs(store)
 
+const getNestedValue = (obj: any, path: string): any  => {
+  const result = path.split('.').reduce((acc, part) => acc?.[part], obj);
+  return result == true ? 'Ja' : result == false ? 'Nej' : result
+}
 
 </script>
 <template>
@@ -45,7 +39,7 @@ const {booking} = storeToRefs(store)
       <div class="flex flex-col gap-3">
         <div v-for="field in overviewFields" :key="field.id" class="flex justify-between w-full">
           <p class="text-gray-600">{{ field.label }}</p>
-          <p class="font-semibold"> {{ booking?.[field.id as keyof typeof booking] ?? '-' }}</p>
+          <p class="font-semibold"> {{ getNestedValue(booking, field.id) ?? '-' }}</p>
         </div>
         <Divider />
         <div class="flex justify-between w-full">
@@ -53,7 +47,11 @@ const {booking} = storeToRefs(store)
             <p class="text-gray-600">Totalt</p>
             <p class="text-gray-600 text-xs">Inkl. Rutavdrag</p>
           </div>
-          <p class="font-semibold">Lämnas vid offert</p>
+          <div class="flex justify-end items-center">
+            <ProgressSpinner v-if="store.calculating" style="width: 50px; height: 50px" fill="transparent"
+              animationDuration=".5s" />
+            <p class="font-semibold" v-else>{{ store.booking.estimated_price != null ? store.booking.estimated_price.toLocaleString().replace(",", " ") + " kr" : "Beräknar din offert" }}</p>
+          </div>
         </div>
       </div>
     </div>

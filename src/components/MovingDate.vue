@@ -5,62 +5,73 @@ import { FloatLabel, DatePicker, RadioButtonGroup, RadioButton, Button } from 'p
 import * as yup from 'yup'
 import { useBookingStore } from '@/stores/booking'
 
-const emit = defineEmits(['prev', 'next','sendData'])
+const emit = defineEmits(['prev', 'next'])
+
+const bookingStore = useBookingStore()
+
+const services = computed(() => bookingStore.booking.services || [])
 
 const flexibleOptions = ref([
-  { label: 'Ja', value: 'Ja' },
-  { label: 'Nej', value: 'Nej' },
+  { label: 'Ja', value: true },
+  { label: 'Nej', value: false },
 ])
 
 const selectOption = (value: any) => {
-  flexibleOption.value = value
+  isFlexibleDate.value = value
 }
 
-const validationSchema = yup.object({
+const validationSchema = computed(() => yup.object({
   movingDate: yup.string().required('Flyttdatum är obligatoriskt'),
-  flexible: yup.string().required('Ange om flyttdatum är flexibelt'),
-})
+  cleaningDate: services.value.includes('Flyttstädning')
+    ? yup.string().required('Flyttstädning kräver ett datum')
+    : yup.string().notRequired(),
+  isFlexibleDate: yup.boolean().required('Ange om flyttdatum är flexibelt'),
+}))
 
-const { validate, values } = useForm({
+const { validate, values, meta } = useForm({
   validationSchema,
 })
 
-const { value: selectedDate, errorMessage: dateError } = useField<string>('movingDate')
-const { value: flexibleOption, errorMessage: radioError } = useField('flexible')
+const { value: movingDate, errorMessage: movingDateError } = useField<string>('movingDate')
+const { value: cleaningDate, errorMessage: cleaningDateError } = useField<string>('cleaningDate')
+const { value: isFlexibleDate, errorMessage: radioError } = useField<boolean>('isFlexibleDate')
 
-const formatDate = ref(selectedDate.value ? new Date(selectedDate.value) : undefined)
+// const formatDate = ref(movingDate.value ? new Date(movingDate.value) : undefined)
 
-function setDate(date: Date) {
-  selectedDate.value = date?.toLocaleDateString('sv-SE')
+function setMovingDate(date: Date) {
+  movingDate.value = date?.toLocaleDateString('sv-SE')
+}
+
+function setCleaningDate(date: Date) {
+  cleaningDate.value = date?.toLocaleDateString('sv-SE')
 }
 
 const handleSubmit = async () => {
   const { valid } = await validate()
   if (valid) {
-    emit('next', {
-      moving: {
-        movingDate: selectedDate.value,
-        flexible: flexibleOption.value,
-      },
+    useBookingStore().updateBooking({
+      moving_date: movingDate.value,
+      is_flexible_date: isFlexibleDate.value,
+      cleaning_date: cleaningDate.value,
     })
+    emit('next')
   }
 }
 
-watch(selectedDate, (newValue) => {
+watch(movingDate, (newValue) => {
   useBookingStore().updateBooking({
-    movingDate: newValue,
+    moving_date: newValue,
   })
 })
-watch(flexibleOption, (newValue) => {
+watch(isFlexibleDate, (newValue) => {
   useBookingStore().updateBooking({
-    flexibleDate: newValue as string,
+    is_flexible_date: newValue,
   })
 })
-
 </script>
 <template lang="">
   <form @submit.prevent="handleSubmit">
-    <h1 className="text-2xl">Vi Flyttar den..</h1>
+    <h1 className="text-2xl">Vi flyttar den..</h1>
     <h3 className="text-medium">
       Ange ett preliminärt datum för er flytt. Om flexibelt flyttdatum önskas så kan detta väljas
       nedan.
@@ -69,33 +80,53 @@ watch(flexibleOption, (newValue) => {
     <div class="grid gap-4 mt-4">
       <div className="grid gap-2">
         <label className="font-semibold" htmlFor="in_label"> Välj datum </label>
-        <FloatLabel variant="in" class="rounded-md">
-          <DatePicker
-            v-model="formatDate"
-            size="small"
-            fluid
-            inputId="in_label"
-            showIcon
-            dateFormat="dd/mm/yy"
-            iconDisplay="input"
-            @update:model-value="setDate"
-          />
-          <label for="in_label">Flyttdatum</label>
-        </FloatLabel>
-        <span className="text-sm font-semibold text-red-500" v-if="dateError">
-          Vänligen välj ett datum
-        </span>
+        <div>
+          <FloatLabel variant="in" class="rounded-md">
+            <!-- v-model="formatDate" -->
+            <DatePicker
+              size="small"
+              fluid
+              inputId="in_label"
+              showIcon
+              dateFormat="dd/mm/yy"
+              iconDisplay="input"
+              @update:model-value="setMovingDate"
+            />
+            <label for="in_label">Flyttdatum</label>
+          </FloatLabel>
+          <span className="text-sm font-semibold text-red-500" v-if="movingDateError">
+            Vänligen välj ett flyttdatum
+          </span>
+        </div>
+        <div v-if="services.includes('Flyttstädning')">
+          <FloatLabel variant="in" class="rounded-md">
+            <!-- v-model="formatDate" -->
+            <DatePicker
+              size="small"
+              fluid
+              inputId="in_label"
+              showIcon
+              dateFormat="dd/mm/yy"
+              iconDisplay="input"
+              @update:model-value="setCleaningDate"
+            />
+            <label for="in_label">Städdatum</label>
+          </FloatLabel>
+          <span className="text-sm font-semibold text-red-500" v-if="cleaningDateError">
+            Vänligen välj ett städdatum
+          </span>
+        </div>
       </div>
       <div className="grid gap-2">
         <label className="font-semibold">Är ditt flyttdatum flexibelt?</label>
-        <RadioButtonGroup v-model="flexibleOption" name="flexible" class="flex gap-2">
+        <RadioButtonGroup v-model="isFlexibleDate" name="flexible" class="flex gap-2">
           <div
             v-for="option in flexibleOptions"
             @click="selectOption(option.value)"
             class="flex w-full items-center gap-2 border-1 border-gray-300 rounded-md px-2 py-3.5 cursor-pointer bg-white hover:bg-gray-100"
           >
-            <RadioButton :inputId="option.value" :value="option.value" />
-            <label className="cursor-pointer" :for="option.value">{{ option.value }}</label>
+            <RadioButton :inputId="option.label" :value="option.value" />
+            <label className="cursor-pointer" :for="option.label">{{ option.label }}</label>
           </div>
         </RadioButtonGroup>
         <span className="text-sm font-semibold text-red-500" v-if="radioError">
@@ -104,7 +135,11 @@ watch(flexibleOption, (newValue) => {
       </div>
       <div class="flex gap-2">
         <Button @click="emit('prev')" label="Gå Tillbaka" severity="secondary" />
-        <Button type="submit" label="Nästa" />
+        <Button 
+        :class="[!meta.valid ? '!cursor-not-allowed' : '']"
+        :disabled="!meta.valid"
+        type="submit"
+        label="Nästa" />
       </div>
     </div>
     <!-- {{ values }} -->
