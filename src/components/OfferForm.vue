@@ -13,6 +13,8 @@ import { useErrorStore } from '@/stores/errorStore'
 
 const step = ref(1)
 
+const apiKey = import.meta.env.VITE_API_KEY
+
 const bookingStore = useBookingStore()
 
 const emit = defineEmits(['toggleMenu'])
@@ -85,7 +87,7 @@ const next = async () => {
 
 const submit =  async () => {
   const plainBooking = (bookingStore.booking);
-  const headers = { 'Content-Type': 'application/json', "X-API-KEY": "RvCiOYMDImW02G4IUEH6fU4qxnbEkv9s" };
+  const headers = { 'Content-Type': 'application/json', "X-API-KEY": apiKey };
   try {
     const response = await apiClient.post('/booking', plainBooking, { headers });
     const bookingId = response.data['booking_id'];
